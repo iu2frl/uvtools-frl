@@ -30,89 +30,88 @@ useDefaultFirmwareDiv.addEventListener('click', function (event) {
     }
 });
 
-// Change event listener for the checkbox to update the UI
-useDefaultFirmwareCheckbox.addEventListener('change', function () {
-    toggleCheckbox();
-});
-
-// Update text to show filename after file selection
-customFileInput.addEventListener('change', function () {
-    // Check if a file is selected
-    if (this.files.length > 0) {
-        // Get the name of the selected file and update the label text
-        customFileLabel.textContent = this.files[0].name;
-    } else {
-        // If no file is selected, reset the label text
-        customFileLabel.textContent = 'Select own firmware (v26 only)';
-    }
-});
-
-
 let rawVersion = null; // stores the raw version data for fwpack.js and qsflash.js
 let rawFirmware = null; // stores the raw firmware data for qsflash.js
 
-document.getElementById('patchButton').addEventListener('click', function () {
-    log("");
-    const file = useDefaultFirmwareCheckbox.checked
-        ? fetch('fw/k5_v2.01.26_publish.bin')
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.arrayBuffer();
-            })
-            .then((arrayBuffer) => new Uint8Array(arrayBuffer))
-        : new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                resolve(new Uint8Array(event.target.result));
-            };
-            reader.readAsArrayBuffer(customFileInput.files[0]);
-        });
-
-    file
-        .then((encoded_firmware) => {
-            const unpacked_firmware = unpack(encoded_firmware);
-
-            log(`Detected firmware version: ${new TextDecoder().decode(rawVersion.subarray(0, rawVersion.indexOf(0)))}`);
-
-            // Adjust firmware version to allow cross flashing
-            const newVersionChar = document.getElementById("firmwareVersionSelect").value;
-            const newVersionCharCode = newVersionChar.charCodeAt(0);
-            rawVersion[0] = newVersionCharCode;
-            log(`Modified firmware version: ${new TextDecoder().decode(rawVersion.subarray(0, rawVersion.indexOf(0)))}`);
-
-            // Apply mods to unpacked firmware
-            const patched_firmware = applyMods(unpacked_firmware);
-
-            // Save raw firmware for qsflash.js
-            rawFirmware = patched_firmware;
-
-            // Check size
-            const current_size = patched_firmware.length;
-            const max_size = 0xEFFF;
-            const percentage = (current_size / max_size) * 100;
-            log(`Patched firmware uses ${percentage.toFixed(2)}% of available memory (${current_size}/${max_size} bytes).`);
-            if (current_size > max_size) {
-                log("WARNING: Firmware is too large and WILL NOT WORK!\nTry disabling mods that take up extra memory.");
+document.getElementById('flashButton').addEventListener('click', function() {
+    log("Preparing to flash firmware...");
+    const firmwareSelect = document.getElementById('firmwareFileSelect');
+    const selectedFirmware = firmwareSelect.value;
+    
+    if (!selectedFirmware) {
+        log('Error: Please select a firmware to flash.');
+        return;
+    }
+    
+    fetch(selectedFirmware)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to load firmware file');
             }
-
-            const packed_firmware = pack(patched_firmware);
-
-            // Save encoded firmware to file
-            const fwPackedBlob = new Blob([packed_firmware]);
-            const fwPackedURL = URL.createObjectURL(fwPackedBlob);
-            const downloadButton = document.getElementById('downloadButton');
-            downloadButton.href = fwPackedURL;
-            downloadButton.download = 'fw_modded.bin'; // TODO: Generate name based on mods
-            downloadButton.classList.remove('disabled');
-            document.getElementById('flashButton').classList.remove('disabled');
+            return response.arrayBuffer();
+        })
+        .then((arrayBuffer) => {
+            const firmwareData = new Uint8Array(arrayBuffer);
+            
+            try {
+                // Unpack the firmware if needed
+                const unpacked_firmware = unpack(firmwareData);
+                
+                // Extract version information for the bootloader protocol
+                rawVersion = extractFirmwareVersion(unpacked_firmware);
+                log(`Detected firmware version: ${new TextDecoder().decode(rawVersion.subarray(0, rawVersion.indexOf(0) >= 0 ? rawVersion.indexOf(0) : rawVersion.length))}`);
+                
+                // Save raw firmware for flashing
+                rawFirmware = unpacked_firmware;
+                
+                // Check size
+                const current_size = unpacked_firmware.length;
+                const max_size = 0xEFFF;
+                const percentage = (current_size / max_size) * 100;
+                log(`Firmware uses ${percentage.toFixed(2)}% of available memory (${current_size}/${max_size} bytes).`);
+                
+                if (current_size > max_size) {
+                    log("WARNING: Firmware is too large and WILL NOT WORK!");
+                    return;
+                }
+                
+                log("Firmware loaded successfully. Ready to flash.");
+                log("Connect your radio in bootloader mode and press the Flash button again to start flashing.");
+            } catch (error) {
+                console.error(error);
+                log('Error processing firmware: ' + error.message);
+            }
         })
         .catch((error) => {
             console.error(error);
-            log('Error while patching firmware, check log above or developer console for details.');
+            log('Error loading firmware file: ' + error.message);
         });
 });
+
+// Helper function to extract version info from firmware
+function extractFirmwareVersion(firmware) {
+    // Create a temporary version identifier for the flashing protocol
+    const versionBuffer = new Uint8Array(16).fill(0);
+    
+    // Try to determine version from filename or use default
+    const firmwareSelect = document.getElementById('firmwareFileSelect');
+    const selectedOption = firmwareSelect.options[firmwareSelect.selectedIndex].text;
+    
+    let versionString = '2.01.26'; // Default version
+    
+    if (selectedOption.includes('IJV V3.4')) {
+        versionString = '3.40';
+    } else if (selectedOption.includes('FAGCI')) {
+        versionString = '4.00';
+    }
+    
+    // Encode the version string
+    const versionEncoder = new TextEncoder();
+    const versionBytes = versionEncoder.encode(versionString);
+    versionBuffer.set(versionBytes);
+    
+    return versionBuffer;
+}
 
 // flasher
 
