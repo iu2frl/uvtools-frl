@@ -135,13 +135,12 @@ async function flash_init(port) {
     return Promise.reject('Maximum attempts reached, no response was 0x18. Aborting.');
 }
 
+// TODO: Change this block to allow any firmware using the universal branch
 // function to check if the version of the firmware is compatible with the bootloader (it does not actually matter lol)
 function flash_checkVersion(dataPacket, versionFromFirmware) {
     const decoder = new TextDecoder();
     // print bootloader version as string, located at index 0x14
     log(`Bootloader version: ${decoder.decode(dataPacket.slice(0x14, 0x14 + 7))}`);
-
-    return true; // always return true, we don't care about the version
 
     // the radio accepts a * wildcard version, so we will do the same
     if (versionFromFirmware[0] == 0x2a) return true;
