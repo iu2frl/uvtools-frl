@@ -220,9 +220,11 @@
                       </div>
                       <div id="customFileInputDiv" class="custom-file">
                         <select id="firmwareFileSelect" class="form-control">
+                          <option value="" disabled selected>Select firmware</option>
+                          <option value="fw/k5_v2.01.26_publish.bin">Original firmware V1.26</option>  
                           <option value="fw/firmware.N3.40.bin">IJV V3.4 Normal</option>
-                          <option value="fw/firmware.S3.40.bin">IJV V3.4 999ch Slow</option>
-                          <option value="fw/firmware.X3.40.bin">IJV V3.4 999ch</option>
+                          <option value="fw/firmware.X3.40.bin">IJV V3.4 999ch standard EEPROM</option>
+                          <option value="fw/firmware.S3.40.bin">IJV V3.4 999ch for slow EEPROM</option>
                           <option value="fw/fagci-r3b0rn-2025-01-19-buggy-nightly1-SNR-CLOSE-43.bin">FAGCI Nightly 2025-01-19</option>
                         </select>
                       </div>

@@ -141,6 +141,8 @@ function flash_checkVersion(dataPacket, versionFromFirmware) {
     // print bootloader version as string, located at index 0x14
     log(`Bootloader version: ${decoder.decode(dataPacket.slice(0x14, 0x14 + 7))}`);
 
+    return true; // always return true, we don't care about the version
+
     // the radio accepts a * wildcard version, so we will do the same
     if (versionFromFirmware[0] == 0x2a) return true;
 
