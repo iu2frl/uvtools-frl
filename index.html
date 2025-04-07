@@ -141,56 +141,45 @@
                 </a>
                 <div id="instructions" class="card-body collapse">
                   <h2 class="mb-4">IU2FRL Flasher (derived from UVMOD)</h2>
-                  <p>This tool lets you flash firmwares for the Quansheng UV-K5, UV-K6, UV-K5(8), and UV-5R
-                    Plus handheld radios. To flash the firmware, you need a compatible programming cable and the
-                    necessary drivers.</p>
+                  <p>This tool provides a simple web interface for flashing firmwares to Quansheng UV-K5, UV-K6, UV-K5(8), and UV-5R
+                  Plus handheld radios. It works by connecting to your radio through a compatible programming cable using Web Serial API.</p>
 
-                  <h3 class="mt-4">Usage</h3>
+                  <h3 class="mt-4">How the Tool Works</h3>
                   <ol>
-                    <li>Select the desired mods and customize as needed. Refer to the description of each mod for usage
-                      instructions.</li>
-                    <li>On the right side, you can select your radio model, but you can also leave it on "Patch for all
-                      radios", which creates a universal firmware that bypasses the version check. </li>
-                    <li>Click "Patch" and watch the console output, it will show errors and also the final size. If you
-                      get an oversize warning, you will have to deselect mods that add extra memory and try again.</li>
-                    <li>Click "Save" to download the finished firmware file.</li>
+                  <li>Select your desired firmware from the dropdown menu on the left panel.</li>
+                  <li>Connect your radio in bootloader mode (by holding PTT while powering on).</li>
+                  <li>Click "Flash firmware to the radio" to initiate the flashing process.</li>
+                  <li>The tool communicates with your radio via Serial API, uploads the firmware binary, and provides real-time progress in the console window.</li>
                   </ol>
 
-                  <h3 class="mt-4">Flashing directly with UVMOD</h3>
-                  <p>Modern Chromium-based browsers such as Chrome, Edge, and Opera have a built-in API
-                    that allows UVMOD to flash the firmware directly to the radio. This is the easiest way to flash the
-                    firmware, but it only works on Windows and Linux.</p>
-                  <p>On Windows, you need the driver for the
-                    programming cable. Typically these cables use ch340, ch341 or cp210x chips. On linux, the driver is
-                    usually included. </p>
+                  <h3 class="mt-4">Radio Configurator</h3>
+                  <p>The right panel provides a configuration interface that allows you to:</p>
                   <ol>
-                    <li>Connect the programming cable to your computer and ensure the proper drivers are installed. It
-                      should show up as a com port.</li>
-                    <li>On your radio (still disconnected and turned off), hold down PTT (large button on the side) and
-                      turn on the radio while still holding PTT. Now the flashlight should turn on while the rest of the
-                      radio stays dark. Your radio is now in bootloader mode.</li>
-                    <li>Connect the programming cable to the radio.</li>
-                    <li>Click "Flash directly" and wait for the process to finish. You can watch progress in the
-                      console. </li>
-                    <li>All done, all your settings should still all be intact.</li>
+                  <li>Read your radio's current configuration settings.</li>
+                  <li>Modify settings without reflashing the entire firmware.</li>
+                  <li>Write changes back to the radio.</li>
+                  <li>Create and restore configuration backups.</li>
                   </ol>
 
-                  <h3 class="mt-4">Flashing with the official software</h3>
-                  <p>If you use Windows, you can use the official updater tool. You can download it directly from UVMOD
-                    using the link in the console window.</p>
+                  <h3 class="mt-4">Technical Details</h3>
+                  <p>The firmware flashing process utilizes the Web Serial API available in modern browsers to establish direct communication with your radio's bootloader. The tool performs the following operations:</p>
                   <ol>
-                    <li>Connect the programming cable to your computer and ensure the proper drivers are installed. In
-                      the device manager, it should show up as a com port.</li>
-                    <li>Start the updater tool, select the com port, and click connect.</li>
-                    <li>Load the customized firmware as the program file.</li>
-                    <li>On your radio (still disconnected and turned off), hold down PTT (large button on the side) and
-                      turn on the radio while still holding PTT. Now the flashlight should turn on while the rest of the
-                      radio stays dark. Your radio is now in bootloader mode.</li>
-                    <li>Connect the programming cable to the radio. The "Update" button in the updater tool should now
-                      become available.</li>
-                    <li>Click update and wait for the tool to finish.</li>
-                    <li>All done, all your settings should still all be intact.</li>
+                  <li>Loads the selected firmware binary from the server.</li>
+                  <li>Establishes a serial connection to the radio's bootloader.</li>
+                  <li>Sends the appropriate commands to erase and write to the radio's flash memory.</li>
+                  <li>Verifies successful writing to ensure firmware integrity.</li>
                   </ol>
+
+                  <h3 class="mt-4">Requirements</h3>
+                  <p>To use this tool effectively:</p>
+                  <ul>
+                  <li>Use a Chromium-based browser (Chrome, Edge, Opera) which supports Web Serial API.</li>
+                  <li>Have appropriate drivers installed for your programming cable (typically ch340, ch341 or cp210x chips).</li>
+                  <li>Connect your radio in bootloader mode before attempting to flash.</li>
+                  <li>Ensure you have a stable connection throughout the flashing process.</li>
+                  </ul>
+                  
+                  <p class="mt-4 font-weight-bold">Note: If you prefer to download the firmware without flashing, you can use the "Download firmware to PC" button and flash manually using official tools.</p>
                 </div>
 
               </div>
