@@ -236,21 +236,6 @@
           <!-- Content Row -->
           <div class="row">
 
-            <div class="col mb-4">
-              <!-- Mods -->
-              <div class="card shadow-lg mb-4">
-                <div class="card-header py-3 d-flex">
-                  <div class="mr-auto">
-                    <h6 class="m-0 font-weight-bold text-primary">Mods</h6>
-                  </div>
-                  <a style="line-height: 1 !important;" target="_blank" rel="nofollow"
-                    href="https://github.com/whosmatt/uvmod">Contribute mods &rarr;</a>
-                </div>
-                <div id="modsContainer" class="card-body">
-                </div>
-              </div>
-            </div>
-
             <div class="col-lg-4 mb-4">
               <!-- Console -->
               <div class="card shadow mb-4 sticky-top" style="top: 1.5rem">
@@ -258,13 +243,11 @@
                   <div class="mr-auto">
                     <h6 class="m-0 font-weight-bold text-primary">Console</h6>
                   </div>
-                  <a style="line-height: 1 !important;" target="_blank" rel="nofollow"
-                    href="fw/uvk5updater.zip">Download updater software &rarr;</a>
                 </div>
                 <div class="card-body">
                   <div>
                     <div class="d-flex justify-content-center">
-                      <textarea id="console" class="w-100 form-control" style="height: 10em;" readonly></textarea>
+                      <textarea id="console" class="w-100 form-control" style="height: 10em;" readonly>Waiting</textarea>
                     </div>
                   </div>
                   <div>
@@ -274,36 +257,55 @@
                           <input id="useDefaultFirmware" type="checkbox" checked style="cursor: pointer;">
                         </div>
                       </div>
-                      <div id="customFileInputDiv" class="custom-file d-none">
-                        <input id="customFileInput" type="file" class="custom-file-input">
-                        <label id="customFileLabel" class="custom-file-label" for="customFileInput">Select own firmware
-                          (v26 only)</label>
+                      <div id="customFileInputDiv" class="custom-file">
+                        <select id="firmwareFileSelect" class="form-control">
+                          <option value="">Select firmware</option>
+                        </select>
                       </div>
-                      <span id="useDefaultFirmwareSpan" class="form-control" readonly>Using stock v26 firmware</span>
                     </div>
-                    <select class="form-control mt-2" id="firmwareVersionSelect">
-                      <option value="*">Patch for all radios</option>
-                      <option value="2">Patch for K5, K6, K5(8)</option>
-                      <option value="4">Patch for 5R Plus</option>
-                    </select>
+                    <script>
+                      // Fetch firmware files from the 'fw' folder and populate the dropdown
+                      fetch('fw/')
+                        .then(response => {
+                          if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                          }
+                          return response.text();
+                        })
+                        .then(data => {
+                          const parser = new DOMParser();
+                          const htmlDoc = parser.parseFromString(data, 'text/html');
+                          const files = Array.from(htmlDoc.querySelectorAll('a')).map(a => a.href).filter(href => href.endsWith('.bin'));
+                          const firmwareFileSelect = document.getElementById('firmwareFileSelect');
+                          files.forEach(file => {
+                            const option = document.createElement('option');
+                            option.value = file;
+                            option.textContent = file.split('/').pop();
+                            firmwareFileSelect.appendChild(option);
+                          });
+                        })
+                        .catch(error => {
+                          console.error('Error fetching firmware files:', error);
+                        });
+                    </script>
                   </div>
 
-                  <div class="mt-2">
+                  <!-- <div class="mt-2">
                     <a id="patchButton" class="btn btn-primary btn-icon-split w-100">
                       <span class="icon text-white-50">
                         <i class="fas fa-wrench"></i>
                       </span>
                       <span class="text w-100">Patch firmware</span>
                     </a>
-                  </div>
+                  </div> -->
                   <div class="mt-2 d-flex">
-                    <a id="downloadButton" class="btn btn-dark btn-icon-split mr-1 disabled w-100">
+                    <a id="downloadButton" class="btn btn-dark btn-icon-split mr-1 w-100">
                       <span class="icon text-white-50">
                         <i class="fas fa-download"></i>
                       </span>
                       <span class="text w-100">Save firmware</span>
                     </a>
-                    <a id="flashButton" class="btn btn-dark btn-icon-split disabled w-100">
+                    <a id="flashButton" class="btn btn-dark btn-icon-split w-100">
                       <span class="icon text-white-50">
                         <i class="fab fa-usb"></i>
                       </span>
@@ -342,7 +344,6 @@
   <script src="js/fwpack.js"></script>
   <script src="js/qsSerial.js"></script>
   <script src="js/modframework.js"></script>
-  <script src="mods.js"></script>
   <script src="js/tool_patcher.js"></script>
 
   <!-- Easter egg, click the title -->
