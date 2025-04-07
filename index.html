@@ -247,6 +247,54 @@
                 </div>
               </div>
             </div>
+
+            <div class="col-lg-8 mb-4">
+              <!-- Radio Configurator -->
+              <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex">
+                  <div class="mr-auto">
+                    <h6 class="m-0 font-weight-bold text-success">Radio Configurator</h6>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div id="configContainer" class="mb-4">
+                    <!-- Configuration content will be loaded here -->
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text">
+                            <input id="automaticBackupCheckbox" style="cursor: pointer;" type="checkbox" checked>
+                          </div>
+                        </div>
+                        <label for="automaticBackupCheckbox" class="form-control" readonly style="cursor: pointer;">Save automatic backup</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="custom-file mb-3">
+                        <input id="backupFileInput" type="file" class="custom-file-input" accept=".bin">
+                        <label id="backupFileLabel" class="custom-file-label" for="backupFileInput">Import backup</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="d-flex">
+                    <a id="readConfigButton" class="btn btn-success btn-icon-split mr-1 w-100">
+                      <span class="icon text-white-50">
+                        <i class="fas fa-sign-out-alt"></i>
+                      </span>
+                      <span class="text w-100">Read Config</span>
+                    </a>
+                    <a id="writeConfigButton" class="btn btn-success btn-icon-split disabled w-100">
+                      <span class="icon text-white-50">
+                        <i class="fas fa-sign-in-alt"></i>
+                      </span>
+                      <span class="text w-100">Write Config</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <!-- /.container-fluid -->
@@ -272,6 +320,7 @@
   <script src="js/qsSerial.js"></script>
   <script src="js/modframework.js"></script>
   <script src="js/tool_patcher.js"></script>
+  <script src="js/tool_configurator.js"></script>
 
   <!-- Easter egg, click the title -->
   <script>
