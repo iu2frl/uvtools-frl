@@ -233,13 +233,13 @@
                       <span class="icon text-white-50">
                         <i class="fas fa-download"></i>
                       </span>
-                      <span class="text w-100">Download firmware</span>
+                      <span class="text w-100">Download firmware to PC</span>
                     </a>
                     <a id="flashButton" class="btn btn-dark btn-icon-split w-100">
                       <span class="icon text-white-50">
                         <i class="fab fa-usb"></i>
                       </span>
-                      <span class="text w-100">Flash directly</span>
+                      <span class="text w-100">Flash firmware to the radio</span>
                     </a>
                   </div>
                 </div>
@@ -374,6 +374,55 @@
       link.href = selectedFirmware;
       link.download = selectedFirmware.split('/').pop();
       link.click();
+    }
+    
+    function flashFirmware() {
+      const firmwareSelect = document.getElementById('firmwareFileSelect');
+      const selectedFirmware = firmwareSelect.value;
+      const consoleElement = document.getElementById('console');
+      
+      if (!selectedFirmware) {
+        consoleElement.value = 'Error: Please select a firmware to flash.';
+        return;
+      }
+      
+      consoleElement.value = 'Preparing to flash firmware...\n';
+      
+      // Fetch the firmware file
+      fetch(selectedFirmware)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to load firmware file');
+          }
+          return response.arrayBuffer();
+        })
+        .then(firmwareBuffer => {
+          consoleElement.value += 'Firmware loaded successfully.\n';
+          consoleElement.value += 'Searching for radio...\n';
+          
+          // Use the qsSerial module to flash the firmware
+          if (typeof qsSerial !== 'undefined' && qsSerial.flashFirmware) {
+            qsSerial.flashFirmware(new Uint8Array(firmwareBuffer), 
+              // Progress callback
+              (progress) => {
+                consoleElement.value = `Flashing: ${Math.round(progress * 100)}%\n` + consoleElement.value;
+              },
+              // Success callback
+              () => {
+                consoleElement.value = 'Firmware successfully flashed to radio!\n' + consoleElement.value;
+              },
+              // Error callback
+              (error) => {
+                consoleElement.value = `Error: ${error}\n` + consoleElement.value;
+              }
+            );
+          } else {
+            consoleElement.value += 'Error: Flash functionality not available. Make sure you are using a compatible browser.\n';
+          }
+        })
+        .catch(error => {
+          consoleElement.value += `Error: ${error.message}\n`;
+        });
     }
   </script>
 
