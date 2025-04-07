@@ -253,57 +253,23 @@
                   <div>
                     <div class="input-group mt-4">
                       <div id="useDefaultFirmwareDiv" class="input-group-prepend" style="cursor:pointer">
-                        <div class="input-group-text">
-                          <input id="useDefaultFirmware" type="checkbox" checked style="cursor: pointer;">
-                        </div>
                       </div>
                       <div id="customFileInputDiv" class="custom-file">
                         <select id="firmwareFileSelect" class="form-control">
-                          <option value="">Select firmware</option>
+                          <option value="fw/firmware.N3.40.bin">IJV V3.4 Normal</option>
+                          <option value="fw/firmware.S3.40.bin">IJV V3.4 999ch Slow</option>
+                          <option value="fw/firmware.X3.40.bin">IJV V3.4 999ch</option>
+                          <option value="fw/fagci-r3b0rn-2025-01-19-buggy-nightly1-SNR-CLOSE-43.bin">FAGCI Nightly 2025-01-19</option>
                         </select>
                       </div>
                     </div>
-                    <script>
-                      // Fetch firmware files from the 'fw' folder and populate the dropdown
-                      fetch('fw/')
-                        .then(response => {
-                          if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                          }
-                          return response.text();
-                        })
-                        .then(data => {
-                          const parser = new DOMParser();
-                          const htmlDoc = parser.parseFromString(data, 'text/html');
-                          const files = Array.from(htmlDoc.querySelectorAll('a')).map(a => a.href).filter(href => href.endsWith('.bin'));
-                          const firmwareFileSelect = document.getElementById('firmwareFileSelect');
-                          files.forEach(file => {
-                            const option = document.createElement('option');
-                            option.value = file;
-                            option.textContent = file.split('/').pop();
-                            firmwareFileSelect.appendChild(option);
-                          });
-                        })
-                        .catch(error => {
-                          console.error('Error fetching firmware files:', error);
-                        });
-                    </script>
                   </div>
-
-                  <!-- <div class="mt-2">
-                    <a id="patchButton" class="btn btn-primary btn-icon-split w-100">
-                      <span class="icon text-white-50">
-                        <i class="fas fa-wrench"></i>
-                      </span>
-                      <span class="text w-100">Patch firmware</span>
-                    </a>
-                  </div> -->
                   <div class="mt-2 d-flex">
-                    <a id="downloadButton" class="btn btn-dark btn-icon-split mr-1 w-100">
+                    <a id="downloadFirmwareButton" class="btn btn-dark btn-icon-split mr-1 w-100" onclick="downloadFirmware()">
                       <span class="icon text-white-50">
                         <i class="fas fa-download"></i>
                       </span>
-                      <span class="text w-100">Save firmware</span>
+                      <span class="text w-100">Download firmware</span>
                     </a>
                     <a id="flashButton" class="btn btn-dark btn-icon-split w-100">
                       <span class="icon text-white-50">
@@ -313,14 +279,9 @@
                     </a>
                   </div>
                 </div>
-
               </div>
-
-
             </div>
-
           </div>
-
         </div>
         <!-- /.container-fluid -->
 
@@ -435,6 +396,21 @@
         marqueeified = true;
       }
     };
+
+    function downloadFirmware() {
+      const firmwareSelect = document.getElementById('firmwareFileSelect');
+      const selectedFirmware = firmwareSelect.value;
+
+      if (!selectedFirmware) {
+        alert('Please select a firmware to download.');
+        return;
+      }
+
+      const link = document.createElement('a');
+      link.href = selectedFirmware;
+      link.download = selectedFirmware.split('/').pop();
+      link.click();
+    }
   </script>
 
 
