@@ -89,16 +89,17 @@ readConfigButton.addEventListener('click', async function () {
 
 
     } catch (error) {
-        if (error !== 'Reader has been cancelled.') {
-            console.error('Error:', error);
-            log('Unusual error occured, check console for details.');
-        } else {
+        if (error.message === 'Reader has been cancelled.') {
             log('No data received, is the radio connected and on? Please try again.');
+        } else {
+            console.error('Error:', error);
+            log('Unusual error occurred, check console for details.');
         }
         return;
-
     } finally {
-        port.close();
+        if (port) {
+            port.close();
+        }
         readConfigButton.classList.remove('disabled');
     }
 });
@@ -251,11 +252,11 @@ writeConfigButton.addEventListener('click', async function() {
         await eeprom_reboot(port);
         
     } catch (error) {
-        if (error !== 'Reader has been cancelled.') {
+        if (error.message === 'Reader has been cancelled.') {
+            log('Connection error, is the radio connected and on? Please try again.');
+        } else {
             console.error('Error:', error);
             log('Unusual error occurred, check console for details.');
-        } else {
-            log('Connection error, is the radio connected and on? Please try again.');
         }
     } finally {
         if (port) {
