@@ -90,7 +90,7 @@ readConfigButton.addEventListener('click', async function () {
 
     } catch (error) {
         console.error('Error:', error);
-        log(`Unusual error occurred: ${error.message}. Check console for details.`);
+        log(`Unusual error occurred: ${error}. Check console for details.`);
     } finally {
         if (port) {
             port.close();
@@ -248,7 +248,7 @@ writeConfigButton.addEventListener('click', async function() {
         
     } catch (error) {
         console.error('Error:', error);
-        log(`Unusual error occurred: ${error.message}. Check console for details.`);
+        log(`Unusual error occurred: ${error}. Check console for details.`);
     } finally {
         if (port) {
             port.close();
