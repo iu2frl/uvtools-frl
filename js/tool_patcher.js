@@ -1,92 +1,280 @@
-const useDefaultFirmwareCheckbox = document.getElementById('useDefaultFirmware');
-const customFileInputDiv = document.getElementById('customFileInputDiv');
-const customFileInput = document.getElementById('customFileInput');
-const customFileLabel = document.getElementById('customFileLabel');
-const useDefaultFirmwareSpan = document.getElementById('useDefaultFirmwareSpan');
-const useDefaultFirmwareDiv = document.getElementById('useDefaultFirmwareDiv');
-const flashButton = document.getElementById('flashButton');
+// Update the beginning of the file with proper element references
 
-// Function to toggle checkbox and update UI
-function toggleCheckbox() {
-    useDefaultFirmwareCheckbox.checked = !useDefaultFirmwareCheckbox.checked;
-
-    if (useDefaultFirmwareCheckbox.checked) {
-        customFileInputDiv.classList.add('d-none');
-        useDefaultFirmwareSpan.classList.remove('d-none');
-    } else {
-        customFileInputDiv.classList.remove('d-none');
-        useDefaultFirmwareSpan.classList.add('d-none');
-    }
-}
-
-// Click event listener for the div
-useDefaultFirmwareDiv.addEventListener('click', function (event) {
-    // Check if the click occurred on the checkbox or the label, and toggle accordingly
-    if (
-        event.target === useDefaultFirmwareCheckbox ||
-        event.target === useDefaultFirmwareDiv.querySelector('.input-group-text')
-    ) {
-        toggleCheckbox();
-    }
-});
-
+// Global variables
 let rawVersion = null; // stores the raw version data for fwpack.js and qsflash.js
 let rawFirmware = null; // stores the raw firmware data for qsflash.js
 
-document.getElementById('flashButton').addEventListener('click', function() {
-    log("Preparing to flash firmware...");
-    const firmwareSelect = document.getElementById('firmwareFileSelect');
-    const selectedFirmware = firmwareSelect.value;
+// Get references to DOM elements that actually exist in our updated HTML
+const firmwareFileSelect = document.getElementById('firmwareFileSelect');
+const customFirmwareInput = document.getElementById('customFirmwareInput');
+const customFirmwareLabel = document.getElementById('customFirmwareLabel');
+const flashButton = document.getElementById('flashButton');
+const downloadFirmwareButton = document.getElementById('downloadFirmwareButton');
+
+// Remove references to non-existent elements
+// const useDefaultFirmwareCheckbox = document.getElementById('useDefaultFirmware');
+// const customFileInputDiv = document.getElementById('customFileInputDiv');
+// const customFileInput = document.getElementById('customFileInput');
+// const customFileLabel = document.getElementById('customFileLabel');
+// const useDefaultFirmwareSpan = document.getElementById('useDefaultFirmwareSpan');
+// const useDefaultFirmwareDiv = document.getElementById('useDefaultFirmwareDiv');
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize custom file input styling
+    bsCustomFileInput.init();
     
-    if (!selectedFirmware) {
-        log('Error: Please select a firmware to flash.');
-        return;
+    // Connect flash button event
+    if (flashButton) {
+        flashButton.addEventListener('click', flashFirmware);
     }
     
-    fetch(selectedFirmware)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Failed to load firmware file');
-            }
-            return response.arrayBuffer();
-        })
-        .then((arrayBuffer) => {
-            const firmwareData = new Uint8Array(arrayBuffer);
+    // Handle firmware selection change
+    if (firmwareFileSelect) {
+        firmwareFileSelect.addEventListener('change', handleFirmwareSelect);
+    }
+    
+    // Handle custom firmware selection
+    if (customFirmwareInput) {
+        customFirmwareInput.addEventListener('change', handleCustomFirmwareSelect);
+    }
+    
+    // Handle download button
+    if (downloadFirmwareButton) {
+        downloadFirmwareButton.addEventListener('click', downloadFirmware);
+    }
+});
+
+// Remove the toggle checkbox function since we don't use it anymore
+// function toggleCheckbox() { ... }
+
+// Remove the click event listener that no longer applies
+// useDefaultFirmwareDiv.addEventListener('click', function (event) { ... });
+
+// The rest of your code can stay mostly the same, but let's add the new functions
+// to handle firmware selection and custom firmware uploads:
+
+// Handle firmware dropdown selection
+function handleFirmwareSelect() {
+    const selectedFirmware = firmwareFileSelect.value;
+    
+    // Reset custom firmware buffer
+    rawFirmware = null;
+    
+    if (selectedFirmware) {
+        // Clear and disable the file input
+        customFirmwareInput.value = '';
+        customFirmwareInput.setAttribute('disabled', 'disabled');
+        customFirmwareLabel.textContent = 'Upload custom firmware';
+        
+        // Enable download button
+        downloadFirmwareButton.classList.remove('disabled');
+    } else {
+        // Re-enable the file input
+        customFirmwareInput.removeAttribute('disabled');
+        
+        // Disable download button (can't download what's not selected)
+        downloadFirmwareButton.classList.add('disabled');
+    }
+}
+
+// Handle custom firmware file selection
+function handleCustomFirmwareSelect() {
+    const file = customFirmwareInput.files[0];
+    
+    if (file) {
+        // If a file is selected, reset and disable the dropdown
+        firmwareFileSelect.value = '';
+        firmwareFileSelect.setAttribute('disabled', 'disabled');
+        
+        // Update the file label with the selected filename
+        customFirmwareLabel.textContent = file.name;
+        
+        // Disable download button for custom uploads
+        downloadFirmwareButton.classList.add('disabled');
+        
+        // Read the file into memory
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const firmwareData = new Uint8Array(e.target.result);
             
             try {
                 // Unpack the firmware if needed
-                const unpacked_firmware = unpack(firmwareData);
+                rawFirmware = unpack(firmwareData);
                 
-                // Extract version information for the bootloader protocol
-                rawVersion = extractFirmwareVersion(unpacked_firmware);
-                log(`Detected firmware version: ${new TextDecoder().decode(rawVersion.subarray(0, rawVersion.indexOf(0) >= 0 ? rawVersion.indexOf(0) : rawVersion.length))}`);
+                // Create a default version
+                rawVersion = new Uint8Array(16).fill(0);
+                const versionString = '2.01.26'; // Default version
+                const versionEncoder = new TextEncoder();
+                rawVersion.set(versionEncoder.encode(versionString));
                 
-                // Save raw firmware for flashing
-                rawFirmware = unpacked_firmware;
+                log(`Custom firmware loaded: ${file.name} (${rawFirmware.length} bytes)`);
                 
                 // Check size
-                const current_size = unpacked_firmware.length;
+                const current_size = rawFirmware.length;
                 const max_size = 0xEFFF;
                 const percentage = (current_size / max_size) * 100;
                 log(`Firmware uses ${percentage.toFixed(2)}% of available memory (${current_size}/${max_size} bytes).`);
                 
                 if (current_size > max_size) {
                     log("WARNING: Firmware is too large and WILL NOT WORK!");
-                    return;
                 }
-                
-                log("Firmware loaded successfully. Ready to flash.");
-                log("Connect your radio in bootloader mode and press the Flash button again to start flashing.");
             } catch (error) {
-                console.error(error);
-                log('Error processing firmware: ' + error.message);
+                console.error('Error processing firmware:', error);
+                log(`Error processing firmware: ${error.message}`);
+                rawFirmware = null;
             }
-        })
-        .catch((error) => {
-            console.error(error);
-            log('Error loading firmware file: ' + error.message);
-        });
-});
+        };
+        
+        reader.onerror = function() {
+            log('Error reading firmware file.');
+            rawFirmware = null;
+        };
+        
+        reader.readAsArrayBuffer(file);
+    } else {
+        // If no file is selected, re-enable the dropdown
+        firmwareFileSelect.removeAttribute('disabled');
+        customFirmwareLabel.textContent = 'Upload custom firmware';
+    }
+}
+
+// Function to download the selected firmware
+function downloadFirmware() {
+    const selectedFirmware = firmwareFileSelect.value;
+    
+    if (!selectedFirmware) {
+        log('Please select a firmware to download.');
+        return;
+    }
+    
+    const link = document.createElement('a');
+    link.href = selectedFirmware;
+    link.download = selectedFirmware.split('/').pop();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    log(`Downloading: ${selectedFirmware.split('/').pop()}`);
+}
+
+// Modify the flash firmware function to handle both custom and selected firmware
+async function flashFirmware() {
+    flashButton.classList.add('disabled');
+    
+    // If we have custom firmware loaded, use that
+    if (rawFirmware) {
+        log('Using custom firmware...');
+    } else {
+        // Otherwise load from dropdown selection
+        const selectedFirmware = firmwareFileSelect.value;
+        
+        if (!selectedFirmware) {
+            log('Error: Please select a firmware or upload a custom firmware file.');
+            flashButton.classList.remove('disabled');
+            return;
+        }
+        
+        try {
+            log(`Loading firmware: ${selectedFirmware.split('/').pop()}`);
+            const response = await fetch(selectedFirmware);
+            if (!response.ok) {
+                throw new Error('Failed to load firmware file');
+            }
+            const firmwareBuffer = await response.arrayBuffer();
+            const firmwareData = new Uint8Array(firmwareBuffer);
+            
+            // Use the unpack function from fwpack.js if needed
+            try {
+                rawFirmware = unpack(firmwareData);
+                // Extract version from the unpacked firmware
+                rawVersion = new Uint8Array(16).fill(0);
+                
+                // Extract version string from the firmware or use file hints
+                const versionString = selectedFirmware.includes('IJV') ? '3.40' : 
+                                    (selectedFirmware.includes('FAGCI') ? '4.00' : '2.01.26');
+                
+                const versionEncoder = new TextEncoder();
+                const versionBytes = versionEncoder.encode(versionString);
+                rawVersion.set(versionBytes);
+                
+                log(`Detected firmware version: ${versionString}`);
+            } catch (e) {
+                // If unpack fails, use the raw firmware
+                console.warn("Could not unpack firmware, using raw data", e);
+                rawFirmware = firmwareData;
+                // Create a default version
+                rawVersion = new Uint8Array(16).fill(0);
+                const versionString = '2.01.26';
+                const versionEncoder = new TextEncoder();
+                rawVersion.set(versionEncoder.encode(versionString));
+            }
+            
+            if (rawFirmware.length > 0xefff) {
+                log('Firmware file is too large. Aborting.');
+                flashButton.classList.remove('disabled');
+                rawFirmware = null;
+                return;
+            }
+        } catch (error) {
+            log(`Error loading firmware: ${error.message}`);
+            flashButton.classList.remove('disabled');
+            return;
+        }
+    }
+    
+    // Continue with the flash process...
+    log('Connecting to the serial port...');
+    const port = await connect();
+    if (!port) {
+        log('Failed to connect to the serial port.');
+        flashButton.classList.remove('disabled');
+        return;
+    }
+
+    try {
+        const data = await readPacket(port, 0x18, 1000);
+        if (data[0] == 0x18) {
+            console.log('Received 0x18 packet. Radio is ready for flashing.');
+            console.log('0x18 packet data: ', data);
+            log('Radio in flash mode detected.');
+
+            const response = await flash_init(port);
+            if (flash_checkVersion(response, rawVersion)) {
+                log('Version check passed.');
+            } else {
+                log('WARNING: Version check failed! Please select the correct version. Aborting.');
+                return;
+            }
+            log('Flashing firmware...');
+            await flash_flashFirmware(port, rawFirmware);
+
+            return;
+        } else {
+            console.log('Received unexpected packet. Radio is not ready for flashing.');
+            log('Wrong packet received, is the radio in flash mode?');
+            console.log('Data: ', data);
+            return;
+        }
+    } catch (error) {
+        if (error !== 'Reader has been cancelled.') {
+            console.error('Error:', error);
+            log('Unusual error occured, check console for details.');
+        } else {
+            log('No data received, is the radio connected and in flash mode? Please try again.');
+        }
+        return;
+
+    } finally {
+        port.close();
+        flashButton.classList.remove('disabled');
+        // Clear rawFirmware if it was loaded from the selector
+        if (firmwareFileSelect.value) {
+            rawFirmware = null;
+            rawVersion = null;
+        }
+    }
+}
 
 // Helper function to extract version info from firmware
 function extractFirmwareVersion(firmware) {
@@ -206,117 +394,5 @@ async function flash_flashFirmware(port, firmware) {
     log('Successfully flashed firmware.');
     return Promise.resolve();
 }
-
-flashButton.addEventListener('click', async function () {
-    flashButton.classList.add('disabled');
-    
-    log('Using selected firmware for flashing...');
-    const firmwareSelect = document.getElementById('firmwareFileSelect');
-    const selectedFirmware = firmwareSelect.value;
-    
-    if (!selectedFirmware) {
-        log('Error: Please select a firmware to flash.');
-        flashButton.classList.remove('disabled');
-        return;
-    }
-    
-    try {
-        const response = await fetch(selectedFirmware);
-        if (!response.ok) {
-            throw new Error('Failed to load firmware file');
-        }
-        const firmwareBuffer = await response.arrayBuffer();
-        const firmwareData = new Uint8Array(firmwareBuffer);
-        
-        // Use the unpack function from fwpack.js if needed
-        try {
-            rawFirmware = unpack(firmwareData);
-            // Extract version from the unpacked firmware
-            rawVersion = new Uint8Array(16).fill(0);
-            
-            // Extract version string from the firmware or use file hints
-            const versionString = selectedFirmware.includes('IJV') ? '3.40' : 
-                               (selectedFirmware.includes('FAGCI') ? '4.00' : '2.01.26');
-            
-            const versionEncoder = new TextEncoder();
-            const versionBytes = versionEncoder.encode(versionString);
-            rawVersion.set(versionBytes);
-            
-            log(`Detected firmware version: ${versionString}`);
-        } catch (e) {
-            // If unpack fails, use the raw firmware
-            console.warn("Could not unpack firmware, using raw data", e);
-            rawFirmware = firmwareData;
-            // Create a default version
-            rawVersion = new Uint8Array(16).fill(0);
-            const versionString = '2.01.26';
-            const versionEncoder = new TextEncoder();
-            rawVersion.set(versionEncoder.encode(versionString));
-        }
-        
-        if (rawFirmware.length > 0xefff) {
-            log('Firmware file is too large. Aborting.');
-            flashButton.classList.remove('disabled');
-            return;
-        }
-    } catch (error) {
-        log(`Error loading firmware: ${error.message}`);
-        flashButton.classList.remove('disabled');
-        return;
-    }
-    
-    // Continue with the flash process...
-    log('Connecting to the serial port...');
-    const port = await connect();
-    if (!port) {
-        log('Failed to connect to the serial port.');
-        flashButton.classList.remove('disabled');
-        return;
-    }
-
-    try {
-        const data = await readPacket(port, 0x18, 1000);
-        if (data[0] == 0x18) {
-            console.log('Received 0x18 packet. Radio is ready for flashing.');
-            console.log('0x18 packet data: ', data);
-            log('Radio in flash mode detected.');
-
-            const response = await flash_init(port);
-            if (flash_checkVersion(response, rawVersion)) {
-                log('Version check passed.');
-            } else {
-                log('WARNING: Version check failed! Please select the correct version. Aborting.');
-                return;
-            }
-            log('Flashing firmware...');
-            await flash_flashFirmware(port, rawFirmware);
-
-            return;
-        } else {
-            console.log('Received unexpected packet. Radio is not ready for flashing.');
-            log('Wrong packet received, is the radio in flash mode?');
-            console.log('Data: ', data);
-            return;
-        }
-    } catch (error) {
-        if (error !== 'Reader has been cancelled.') {
-            console.error('Error:', error);
-            log('Unusual error occured, check console for details.');
-        } else {
-            log('No data received, is the radio connected and in flash mode? Please try again.');
-        }
-        return;
-
-    } finally {
-        port.close();
-        flashButton.classList.remove('disabled');
-        // Clear rawFirmware if it was loaded from the selector to prevent confusion
-        if (!document.getElementById('patchButton').classList.contains('active')) {
-            rawFirmware = null;
-            rawVersion = null;
-        }
-    }
-});
-
 
 modLoader(); // loads and shows all mods from mods.js
