@@ -210,56 +210,62 @@ async function flash_flashFirmware(port, firmware) {
 flashButton.addEventListener('click', async function () {
     flashButton.classList.add('disabled');
     
-    // Check if we have a patched firmware ready
-    if (rawFirmware) {
-        log('Using patched firmware for flashing...');
+    log('Using selected firmware for flashing...');
+    const firmwareSelect = document.getElementById('firmwareFileSelect');
+    const selectedFirmware = firmwareSelect.value;
+    
+    if (!selectedFirmware) {
+        log('Error: Please select a firmware to flash.');
+        flashButton.classList.remove('disabled');
+        return;
+    }
+    
+    try {
+        const response = await fetch(selectedFirmware);
+        if (!response.ok) {
+            throw new Error('Failed to load firmware file');
+        }
+        const firmwareBuffer = await response.arrayBuffer();
+        const firmwareData = new Uint8Array(firmwareBuffer);
+        
+        // Use the unpack function from fwpack.js if needed
+        try {
+            rawFirmware = unpack(firmwareData);
+            // Extract version from the unpacked firmware
+            rawVersion = new Uint8Array(16).fill(0);
+            
+            // Extract version string from the firmware or use file hints
+            const versionString = selectedFirmware.includes('IJV') ? '3.40' : 
+                               (selectedFirmware.includes('FAGCI') ? '4.00' : '2.01.26');
+            
+            const versionEncoder = new TextEncoder();
+            const versionBytes = versionEncoder.encode(versionString);
+            rawVersion.set(versionBytes);
+            
+            log(`Detected firmware version: ${versionString}`);
+        } catch (e) {
+            // If unpack fails, use the raw firmware
+            console.warn("Could not unpack firmware, using raw data", e);
+            rawFirmware = firmwareData;
+            // Create a default version
+            rawVersion = new Uint8Array(16).fill(0);
+            const versionString = '2.01.26';
+            const versionEncoder = new TextEncoder();
+            rawVersion.set(versionEncoder.encode(versionString));
+        }
+        
         if (rawFirmware.length > 0xefff) {
             log('Firmware file is too large. Aborting.');
             flashButton.classList.remove('disabled');
             return;
         }
-    } else {
-        // If no patched firmware exists, use the selected firmware from dropdown
-        log('Using selected firmware for flashing...');
-        const firmwareSelect = document.getElementById('firmwareFileSelect');
-        const selectedFirmware = firmwareSelect.value;
-        
-        if (!selectedFirmware) {
-            log('Error: Please select a firmware to download.');
-            flashButton.classList.remove('disabled');
-            return;
-        }
-        
-        try {
-            const response = await fetch(selectedFirmware);
-            if (!response.ok) {
-                throw new Error('Failed to load firmware file');
-            }
-            const firmwareBuffer = await response.arrayBuffer();
-            rawFirmware = new Uint8Array(firmwareBuffer);
-            
-            // Create a temporary version identifier for the flashing protocol
-            // Most firmware files don't need this, but the bootloader expects it
-            rawVersion = new Uint8Array(16).fill(0);
-            const versionString = selectedFirmware.includes('IJV') ? '3.40' : 
-                                 (selectedFirmware.includes('FAGCI') ? '4.00' : '2.01.26');
-            const versionEncoder = new TextEncoder();
-            const versionBytes = versionEncoder.encode(versionString);
-            rawVersion.set(versionBytes);
-            
-            log(`Firmware loaded, size: ${rawFirmware.length} bytes`);
-            if (rawFirmware.length > 0xefff) {
-                log('Firmware file is too large. Aborting.');
-                flashButton.classList.remove('disabled');
-                return;
-            }
-        } catch (error) {
-            log(`Error loading firmware: ${error.message}`);
-            flashButton.classList.remove('disabled');
-            return;
-        }
+    } catch (error) {
+        log(`Error loading firmware: ${error.message}`);
+        flashButton.classList.remove('disabled');
+        return;
     }
     
+    // Continue with the flash process...
     log('Connecting to the serial port...');
     const port = await connect();
     if (!port) {
