@@ -89,13 +89,8 @@ readConfigButton.addEventListener('click', async function () {
 
 
     } catch (error) {
-        if (error.message === 'Reader has been cancelled.') {
-            log('No data received, is the radio connected and on? Please try again.');
-        } else {
-            console.error('Error:', error);
-            log('Unusual error occurred, check console for details.');
-        }
-        return;
+        console.error('Error:', error);
+        log(`Unusual error occurred: ${error.message}. Check console for details.`);
     } finally {
         if (port) {
             port.close();
@@ -252,12 +247,8 @@ writeConfigButton.addEventListener('click', async function() {
         await eeprom_reboot(port);
         
     } catch (error) {
-        if (error.message === 'Reader has been cancelled.') {
-            log('Connection error, is the radio connected and on? Please try again.');
-        } else {
-            console.error('Error:', error);
-            log('Unusual error occurred, check console for details.');
-        }
+        console.error('Error:', error);
+        log(`Unusual error occurred: ${error.message}. Check console for details.`);
     } finally {
         if (port) {
             port.close();
