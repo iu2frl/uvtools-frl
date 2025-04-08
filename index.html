@@ -133,64 +133,80 @@
         <!-- Begin Page Content -->
         <div class="container mt-4" style="max-width: 1440px;">
 
+          <!-- Content Row -->
           <div class="row">
-            <div class="col-lg-12">
+            <div class="col-lg-12 mb-4">
+              <!-- Instructions Card (Already spans full width) -->
               <div class="card shadow mb-4">
                 <a href="#instructions" class="d-block card-header py-3" data-toggle="collapse" role="button">
                   <h6 class="m-0 font-weight-bold text-primary">Instructions</h6>
                 </a>
                 <div id="instructions" class="card-body collapse">
                   <h2 class="mb-4">IU2FRL Flasher (derived from UVMOD)</h2>
-                  <p>This tool provides a simple web interface for flashing firmwares to Quansheng UV-K5, UV-K6, UV-K5(8), and UV-5R
-                  Plus handheld radios. It works by connecting to your radio through a compatible programming cable using Web Serial API.</p>
+                  <p>This tool provides a simple web interface for flashing firmwares to Quansheng UV-K5, UV-K6,
+                    UV-K5(8), and UV-5R
+                    Plus handheld radios. It works by connecting to your radio through a compatible programming cable
+                    using Web Serial API.</p>
 
                   <h3 class="mt-4">How the Tool Works</h3>
                   <ol>
-                  <li>Select your desired firmware from the dropdown menu on the left panel.</li>
-                  <li>Connect your radio in bootloader mode (by holding PTT while powering on).</li>
-                  <li>Click "Flash firmware to the radio" to initiate the flashing process.</li>
-                  <li>The tool communicates with your radio via Serial API, uploads the firmware binary, and provides real-time progress in the console window.</li>
+                    <li>Select your desired firmware from the dropdown menu on the left panel.</li>
+                    <li>Connect your radio in bootloader mode (by holding PTT while powering on).</li>
+                    <li>Click "Flash firmware to the radio" to initiate the flashing process.</li>
+                    <li>The tool communicates with your radio via Serial API, uploads the firmware binary, and provides
+                      real-time progress in the console window.</li>
                   </ol>
 
                   <h3 class="mt-4">Radio Configurator</h3>
                   <p>The right panel provides a configuration interface that allows you to:</p>
                   <ol>
-                  <li>Read your radio's current configuration settings.</li>
-                  <li>Modify settings without reflashing the entire firmware.</li>
-                  <li>Write changes back to the radio.</li>
-                  <li>Create and restore configuration backups.</li>
+                    <li>Read your radio's current configuration settings.</li>
+                    <li>Modify settings without reflashing the entire firmware.</li>
+                    <li>Write changes back to the radio.</li>
+                    <li>Create and restore configuration backups.</li>
                   </ol>
 
                   <h3 class="mt-4">Technical Details</h3>
-                  <p>The firmware flashing process utilizes the Web Serial API available in modern browsers to establish direct communication with your radio's bootloader. The tool performs the following operations:</p>
+                  <p>The firmware flashing process utilizes the Web Serial API available in modern browsers to establish
+                    direct communication with your radio's bootloader. The tool performs the following operations:</p>
                   <ol>
-                  <li>Loads the selected firmware binary from the server.</li>
-                  <li>Establishes a serial connection to the radio's bootloader.</li>
-                  <li>Sends the appropriate commands to erase and write to the radio's flash memory.</li>
-                  <li>Verifies successful writing to ensure firmware integrity.</li>
+                    <li>Loads the selected firmware binary from the server.</li>
+                    <li>Establishes a serial connection to the radio's bootloader.</li>
+                    <li>Sends the appropriate commands to erase and write to the radio's flash memory.</li>
+                    <li>Verifies successful writing to ensure firmware integrity.</li>
                   </ol>
 
                   <h3 class="mt-4">Requirements</h3>
                   <p>To use this tool effectively:</p>
                   <ul>
-                  <li>Use a Chromium-based browser (Chrome, Edge, Opera) which supports Web Serial API.</li>
-                  <li>Have appropriate drivers installed for your programming cable (typically ch340, ch341 or cp210x chips).</li>
-                  <li>Connect your radio in bootloader mode before attempting to flash.</li>
-                  <li>Ensure you have a stable connection throughout the flashing process.</li>
+                    <li>Use a Chromium-based browser (Chrome, Edge, Opera) which supports Web Serial API.</li>
+                    <li>Have appropriate drivers installed for your programming cable (typically ch340, ch341 or cp210x
+                      chips).</li>
+                    <li>Connect your radio in bootloader mode before attempting to flash.</li>
+                    <li>Ensure you have a stable connection throughout the flashing process.</li>
                   </ul>
-                  
-                  <p class="mt-4 font-weight-bold">Note: If you prefer to download the firmware without flashing, you can use the "Download firmware to PC" button and flash manually using official tools.</p>
+
+                  <p class="mt-4 font-weight-bold">Note: If you prefer to download the firmware without flashing, you
+                    can use the "Download firmware to PC" button and flash manually using official tools.</p>
                 </div>
-
               </div>
-            </div>
-          </div>
 
-          <!-- Content Row -->
-          <div class="row">
-            <div class="col-lg-4 mb-4">
-              <!-- Firmware Updater -->
-              <div class="card shadow mb-4 sticky-top" style="top: 1.5rem">
+              <!-- Console Card - Now spans full width -->
+              <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex">
+                  <div class="mr-auto">
+                    <h6 class="m-0 font-weight-bold text-info">Console</h6>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex justify-content-center">
+                    <textarea id="console" class="w-100 form-control" style="height: 10em;" readonly>Waiting</textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Firmware Updater - Now spans full width -->
+              <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex">
                   <div class="mr-auto">
                     <h6 class="m-0 font-weight-bold text-primary">Firmware updater</h6>
@@ -204,17 +220,18 @@
                       <div id="customFileInputDiv" class="custom-file">
                         <select id="firmwareFileSelect" class="form-control">
                           <option value="" disabled selected>Select firmware</option>
-                          <option value="fw/k5_v2.01.26_publish.bin">Original firmware V1.26</option>  
-                          <option value="fw/firmware.N3.40.bin">IJV V3.4 Normal</option>
-                          <option value="fw/firmware.X3.40.bin">IJV V3.4 999ch modified with 24M01/24M02 EEPROM</option>
-                          <option value="fw/firmware.S3.40.bin">IJV V3.4 999ch modified with slow 24M01/24M02 EEPROM</option>
-                          <option value="fw/fagci-r3b0rn-2025-01-19-buggy-nightly1-SNR-CLOSE-43.bin">FAGCI Nightly 2025-01-19</option>
+                          <option value="fw/k5_v2.01.26_publish.bin">Original firmware V1.26</option>
+                          <option value="fw/firmware.N3.40.bin">IJV V3.4 with no hardware modification</option>
+                          <option value="fw/firmware.X3.40.bin">IJV V3.4 modified with 24M01/24M02 EEPROM (999ch)</option>
+                          <option value="fw/firmware.S3.40.bin">IJV V3.4 modified with slow 24M01/24M02 EEPROM (999ch)</option>
+                          <option value="fw/fagci-r3b0rn-2025-01-19-buggy-nightly1-SNR-CLOSE-43.bin">FAGCI Nightly 2025-01-19 (any EEPROM)</option>
                         </select>
                       </div>
                     </div>
                   </div>
                   <div class="mt-2 d-flex">
-                    <a id="downloadFirmwareButton" class="btn btn-dark btn-icon-split mr-1 w-100" onclick="downloadFirmware()">
+                    <a id="downloadFirmwareButton" class="btn btn-dark btn-icon-split mr-1 w-100"
+                      onclick="downloadFirmware()">
                       <span class="icon text-white-50">
                         <i class="fas fa-download"></i>
                       </span>
@@ -230,23 +247,7 @@
                 </div>
               </div>
 
-              <!-- Console Card - New dedicated card for console output -->
-              <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex">
-                  <div class="mr-auto">
-                    <h6 class="m-0 font-weight-bold text-info">Console</h6>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="d-flex justify-content-center">
-                    <textarea id="console" class="w-100 form-control" style="height: 10em;" readonly>Waiting</textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-lg-8 mb-4">
-              <!-- Radio Configurator -->
+              <!-- Radio Configurator - Now spans full width -->
               <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex">
                   <div class="mr-auto">
@@ -257,7 +258,7 @@
                   <div id="configContainer" class="mb-4">
                     <!-- Configuration content will be loaded here -->
                   </div>
-                  
+
                   <!-- Added configuration selection row -->
                   <div class="row mb-3">
                     <div class="col-md-12">
@@ -269,7 +270,7 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <div class="row">
                     <div class="col-md-6">
                       <div class="input-group mb-3">
@@ -278,13 +279,16 @@
                             <input id="automaticBackupCheckbox" style="cursor: pointer;" type="checkbox" checked>
                           </div>
                         </div>
-                        <label for="automaticBackupCheckbox" class="form-control" readonly style="cursor: pointer;">Save automatic backup</label>
+                        <label for="automaticBackupCheckbox" class="form-control" readonly style="cursor: pointer;">Save
+                          automatic backup</label>
                       </div>
                     </div>
                     <div class="col-md-6">
                       <div class="custom-file mb-3">
-                        <input id="backupFileInput" type="file" class="custom-file-input" accept=".bin" onchange="handleBackupFileSelect()">
-                        <label id="backupFileLabel" class="custom-file-label" for="backupFileInput">Import backup</label>
+                        <input id="backupFileInput" type="file" class="custom-file-input" accept=".bin"
+                          onchange="handleBackupFileSelect()">
+                        <label id="backupFileLabel" class="custom-file-label" for="backupFileInput">Import
+                          backup</label>
                       </div>
                     </div>
                   </div>
@@ -436,19 +440,19 @@
       link.download = selectedFirmware.split('/').pop();
       link.click();
     }
-    
+
     function flashFirmware() {
       const firmwareSelect = document.getElementById('firmwareFileSelect');
       const selectedFirmware = firmwareSelect.value;
       const consoleElement = document.getElementById('console');
-      
+
       if (!selectedFirmware) {
         consoleElement.value = 'Error: Please select a firmware to flash.';
         return;
       }
-      
+
       consoleElement.value = 'Preparing to flash firmware...\n';
-      
+
       // Fetch the firmware file
       fetch(selectedFirmware)
         .then(response => {
@@ -460,10 +464,10 @@
         .then(firmwareBuffer => {
           consoleElement.value += 'Firmware loaded successfully.\n';
           consoleElement.value += 'Searching for radio...\n';
-          
+
           // Use the qsSerial module to flash the firmware
           if (typeof qsSerial !== 'undefined' && qsSerial.flashFirmware) {
-            qsSerial.flashFirmware(new Uint8Array(firmwareBuffer), 
+            qsSerial.flashFirmware(new Uint8Array(firmwareBuffer),
               // Progress callback
               (progress) => {
                 consoleElement.value = `Flashing: ${Math.round(progress * 100)}%\n` + consoleElement.value;
@@ -485,16 +489,16 @@
           consoleElement.value += `Error: ${error.message}\n`;
         });
     }
-    
+
     // Add these functions to handle the mutual exclusivity
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const configFileSelect = document.getElementById('configFileSelect');
       const backupFileInput = document.getElementById('backupFileInput');
       const writeConfigButton = document.getElementById('writeConfigButton');
-      
+
       // When jQuery is initialized, apply bs-custom-file-input for better file input UI
       bsCustomFileInput.init();
-      
+
       // Connect flash button to the flashFirmware function
       document.getElementById('flashButton').addEventListener('click', flashFirmware);
     });
@@ -504,13 +508,13 @@
       const configFileSelect = document.getElementById('configFileSelect');
       const backupFileInput = document.getElementById('backupFileInput');
       const writeConfigButton = document.getElementById('writeConfigButton');
-      
+
       if (configFileSelect.value) {
         // Clear and disable the file input
         backupFileInput.value = '';
         backupFileInput.setAttribute('disabled', 'disabled');
         document.getElementById('backupFileLabel').textContent = 'Import backup';
-        
+
         // Load the selected config and enable write button
         loadPresetConfig();
       } else {
@@ -524,15 +528,15 @@
       const file = document.getElementById('backupFileInput').files[0];
       const configFileSelect = document.getElementById('configFileSelect');
       const writeConfigButton = document.getElementById('writeConfigButton');
-      
+
       if (file) {
         // If a file is selected, reset and disable the dropdown
         configFileSelect.value = '';
         configFileSelect.setAttribute('disabled', 'disabled');
-        
+
         // Update the file label with the selected filename
         document.getElementById('backupFileLabel').textContent = file.name;
-        
+
         // Process the file - this function should be defined in tool_configurator.js
         loadConfigFile(file);
       } else {
