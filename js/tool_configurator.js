@@ -6,15 +6,12 @@ const configContainer = document.getElementById('configContainer');
 const automaticBackupCheckbox = document.getElementById('automaticBackupCheckbox');
 
 async function eeprom_init(port) {
-    // packet format: uint16 ID, uint16 length, uint32 timestamp
-    // send hello packet to init communication
-    // the 4 bytes are a timestamp for the session and need to be appended to each following packet
-    // we simply set the timestamp to 0xffffffff
-    const packet = new Uint8Array([0x14, 0x05, 0x04, 0x00, 0xff, 0xff, 0xff, 0xff]);
+    // Just send the command ID and data, not the full packet
+    const packet = new Uint8Array([0x14, 0xff, 0xff, 0xff, 0xff]);
     await sendPacket(port, packet);
     const response = await readPacket(port, 0x15);
     const decoder = new TextDecoder();
-    const version = new Uint8Array(response.slice(4, 4+16)); // string contains some garbage after null, so we have to clean it up with indexof
+    const version = new Uint8Array(response.slice(1, 1+16)); // Adjust slice to account for command ID
     log(`Radio connected: Version ${decoder.decode(version.slice(0, version.indexOf(0)))}`);
 }
 

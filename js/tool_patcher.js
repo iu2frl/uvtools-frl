@@ -257,14 +257,8 @@ async function flashFirmware() {
             return;
         }
     } catch (error) {
-        if (error !== 'Reader has been cancelled.') {
-            console.error('Error:', error);
-            log('Unusual error occured, check console for details.');
-        } else {
-            log('No data received, is the radio connected and in flash mode? Please try again.');
-        }
-        return;
-
+        console.error('Error:', error);
+        log(`Unusual error occurred: ${error}`);
     } finally {
         port.close();
         flashButton.classList.remove('disabled');
