@@ -188,9 +188,8 @@
 
           <!-- Content Row -->
           <div class="row">
-
             <div class="col-lg-4 mb-4">
-              <!-- Console -->
+              <!-- Firmware Updater -->
               <div class="card shadow mb-4 sticky-top" style="top: 1.5rem">
                 <div class="card-header py-3 d-flex">
                   <div class="mr-auto">
@@ -199,12 +198,7 @@
                 </div>
                 <div class="card-body">
                   <div>
-                    <div class="d-flex justify-content-center">
-                      <textarea id="console" class="w-100 form-control" style="height: 10em;" readonly>Waiting</textarea>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="input-group mt-4">
+                    <div class="input-group">
                       <div id="useDefaultFirmwareDiv" class="input-group-prepend" style="cursor:pointer">
                       </div>
                       <div id="customFileInputDiv" class="custom-file">
@@ -212,8 +206,8 @@
                           <option value="" disabled selected>Select firmware</option>
                           <option value="fw/k5_v2.01.26_publish.bin">Original firmware V1.26</option>  
                           <option value="fw/firmware.N3.40.bin">IJV V3.4 Normal</option>
-                          <option value="fw/firmware.X3.40.bin">IJV V3.4 999ch standard EEPROM</option>
-                          <option value="fw/firmware.S3.40.bin">IJV V3.4 999ch for slow EEPROM</option>
+                          <option value="fw/firmware.X3.40.bin">IJV V3.4 999ch modified with 24M01/24M02 EEPROM</option>
+                          <option value="fw/firmware.S3.40.bin">IJV V3.4 999ch modified with slow 24M01/24M02 EEPROM</option>
                           <option value="fw/fagci-r3b0rn-2025-01-19-buggy-nightly1-SNR-CLOSE-43.bin">FAGCI Nightly 2025-01-19</option>
                         </select>
                       </div>
@@ -232,6 +226,20 @@
                       </span>
                       <span class="text w-100">Flash firmware to the radio</span>
                     </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Console Card - New dedicated card for console output -->
+              <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex">
+                  <div class="mr-auto">
+                    <h6 class="m-0 font-weight-bold text-info">Console</h6>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex justify-content-center">
+                    <textarea id="console" class="w-100 form-control" style="height: 10em;" readonly>Waiting</textarea>
                   </div>
                 </div>
               </div>
