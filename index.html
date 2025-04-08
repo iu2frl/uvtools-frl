@@ -249,6 +249,19 @@
                   <div id="configContainer" class="mb-4">
                     <!-- Configuration content will be loaded here -->
                   </div>
+                  
+                  <!-- Added configuration selection row -->
+                  <div class="row mb-3">
+                    <div class="col-md-12">
+                      <div class="input-group">
+                        <select id="configFileSelect" class="form-control" onchange="handleConfigSelect()">
+                          <option value="" selected>Custom config file</option>
+                          <option value="config/ijv_v3.40_config.bin">IJV V3.40 Config</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div class="row">
                     <div class="col-md-6">
                       <div class="input-group mb-3">
@@ -262,7 +275,7 @@
                     </div>
                     <div class="col-md-6">
                       <div class="custom-file mb-3">
-                        <input id="backupFileInput" type="file" class="custom-file-input" accept=".bin">
+                        <input id="backupFileInput" type="file" class="custom-file-input" accept=".bin" onchange="handleBackupFileSelect()">
                         <label id="backupFileLabel" class="custom-file-label" for="backupFileInput">Import backup</label>
                       </div>
                     </div>
@@ -463,6 +476,62 @@
         .catch(error => {
           consoleElement.value += `Error: ${error.message}\n`;
         });
+    }
+    
+    // Add these functions to handle the mutual exclusivity
+    document.addEventListener('DOMContentLoaded', function() {
+      const configFileSelect = document.getElementById('configFileSelect');
+      const backupFileInput = document.getElementById('backupFileInput');
+      const writeConfigButton = document.getElementById('writeConfigButton');
+      
+      // When jQuery is initialized, apply bs-custom-file-input for better file input UI
+      bsCustomFileInput.init();
+      
+      // Connect flash button to the flashFirmware function
+      document.getElementById('flashButton').addEventListener('click', flashFirmware);
+    });
+
+    // Handle dropdown selection change
+    function handleConfigSelect() {
+      const configFileSelect = document.getElementById('configFileSelect');
+      const backupFileInput = document.getElementById('backupFileInput');
+      const writeConfigButton = document.getElementById('writeConfigButton');
+      
+      if (configFileSelect.value) {
+        // Clear and disable the file input
+        backupFileInput.value = '';
+        backupFileInput.setAttribute('disabled', 'disabled');
+        document.getElementById('backupFileLabel').textContent = 'Import backup';
+        
+        // Load the selected config and enable write button
+        loadPresetConfig();
+      } else {
+        // Re-enable the file input
+        backupFileInput.removeAttribute('disabled');
+        writeConfigButton.classList.add('disabled');
+      }
+    }
+
+    function handleBackupFileSelect() {
+      const file = document.getElementById('backupFileInput').files[0];
+      const configFileSelect = document.getElementById('configFileSelect');
+      const writeConfigButton = document.getElementById('writeConfigButton');
+      
+      if (file) {
+        // If a file is selected, reset and disable the dropdown
+        configFileSelect.value = '';
+        configFileSelect.setAttribute('disabled', 'disabled');
+        
+        // Update the file label with the selected filename
+        document.getElementById('backupFileLabel').textContent = file.name;
+        
+        // Process the file - this function should be defined in tool_configurator.js
+        loadConfigFile(file);
+      } else {
+        // If no file is selected, re-enable the dropdown
+        configFileSelect.removeAttribute('disabled');
+        writeConfigButton.classList.add('disabled');
+      }
     }
   </script>
 

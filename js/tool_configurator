@@ -4,6 +4,7 @@ const readConfigButton = document.getElementById('readConfigButton');
 const writeConfigButton = document.getElementById('writeConfigButton');
 const configContainer = document.getElementById('configContainer');
 const automaticBackupCheckbox = document.getElementById('automaticBackupCheckbox');
+let configFileSelect; // Will be initialized after DOM load
 
 async function eeprom_init(port) {
     // packet format: uint16 ID, uint16 length, uint32 timestamp
@@ -36,6 +37,45 @@ async function eeprom_read(port, address, size = 0x80) {
     }
     const data = new Uint8Array(response.slice(8));
     return data;
+}
+
+async function eeprom_write(port, address, data) {
+    // packet format: uint16 ID, uint16 length, uint16 address, uint8 size, uint8 padding, uint8[] data, uint32 timestamp
+    const size = data.length;
+    if (size > 0x80) {
+        throw ('eeprom write packet too large, max is 128 bytes');
+    }
+    
+    const address_msb = (address & 0xff00) >> 8;
+    const address_lsb = address & 0xff;
+    
+    // Calculate total packet length: 8 bytes header + data length + 4 bytes timestamp
+    const totalLength = 8 + size + 4;
+    
+    const packet = new Uint8Array(totalLength);
+    packet[0] = 0x1d; // ID
+    packet[1] = 0x05;
+    packet[2] = (totalLength - 4) & 0xFF; // Length LSB
+    packet[3] = ((totalLength - 4) >> 8) & 0xFF; // Length MSB
+    packet[4] = address_lsb;
+    packet[5] = address_msb;
+    packet[6] = size;
+    packet[7] = 0x00; // padding
+    
+    // Copy data into packet
+    packet.set(data, 8);
+    
+    // Add timestamp at the end
+    packet[totalLength - 4] = 0xff;
+    packet[totalLength - 3] = 0xff;
+    packet[totalLength - 2] = 0xff;
+    packet[totalLength - 1] = 0xff;
+    
+    await sendPacket(port, packet);
+    
+    // Wait for acknowledgment
+    const response = await readPacket(port, 0x1e);
+    return response;
 }
 
 async function eeprom_reboot(port) {
@@ -86,7 +126,8 @@ readConfigButton.addEventListener('click', async function () {
             URL.revokeObjectURL(url);
         }
 
-
+        // Enable write button after successful read
+        writeConfigButton.classList.remove('disabled');
 
     } catch (error) {
         if (error !== 'Reader has been cancelled.') {
@@ -103,124 +144,6 @@ readConfigButton.addEventListener('click', async function () {
     }
 });
 
-
-// initialize configurator
-{
-    log("Please read config from device or load a backup file.");
-}
-
-// Add these functions at the end of the file
-
-// Load a predefined configuration
-async function loadPresetConfig() {
-    const configFileSelect = document.getElementById('configFileSelect');
-    const selectedConfig = configFileSelect.value;
-    const writeConfigButton = document.getElementById('writeConfigButton');
-    
-    if (!selectedConfig) {
-        log('Please select a configuration to load.');
-        return;
-    }
-    
-    try {
-        log(`Loading preset configuration: ${selectedConfig}...`);
-        const response = await fetch(selectedConfig);
-        
-        if (!response.ok) {
-            throw new Error(`Failed to fetch configuration (HTTP ${response.status})`);
-        }
-        
-        const configBuffer = await response.arrayBuffer();
-        rawEEPROM = new Uint8Array(configBuffer);
-        
-        if (rawEEPROM.length !== 0x2000) {
-            log(`Warning: Configuration size is ${rawEEPROM.length} bytes, expected 8192 bytes.`);
-        }
-        
-        log('Configuration loaded successfully.');
-        writeConfigButton.classList.remove('disabled');
-        
-    } catch (error) {
-        console.error('Error loading configuration:', error);
-        log(`Error loading configuration: ${error.message}`);
-        writeConfigButton.classList.add('disabled');
-    }
-}
-
-// Load configuration from file input
-function loadConfigFile(file) {
-    const writeConfigButton = document.getElementById('writeConfigButton');
-    
-    if (!file) {
-        log('No file selected.');
-        writeConfigButton.classList.add('disabled');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            rawEEPROM = new Uint8Array(e.target.result);
-            if (rawEEPROM.length !== 0x2000) {
-                log(`Warning: Imported file size is ${rawEEPROM.length} bytes, expected 8192 bytes.`);
-            }
-            log(`Configuration imported from ${file.name}.`);
-            writeConfigButton.classList.remove('disabled');
-        } catch (error) {
-            console.error('Error processing file:', error);
-            log(`Error processing file: ${error.message}`);
-            writeConfigButton.classList.add('disabled');
-        }
-    };
-    
-    reader.onerror = function() {
-        log('Error reading file.');
-        writeConfigButton.classList.add('disabled');
-    };
-    
-    reader.readAsArrayBuffer(file);
-}
-
-async function eeprom_write(port, address, data) {
-    // packet format: uint16 ID, uint16 length, uint16 address, uint8 size, uint8 padding, uint8[] data, uint32 timestamp
-    const size = data.length;
-    if (size > 0x80) {
-        throw ('eeprom write packet too large, max is 128 bytes');
-    }
-    
-    const address_msb = (address & 0xff00) >> 8;
-    const address_lsb = address & 0xff;
-    
-    // Calculate total packet length: 8 bytes header + data length + 4 bytes timestamp
-    const totalLength = 8 + size + 4;
-    
-    const packet = new Uint8Array(totalLength);
-    packet[0] = 0x1d; // ID
-    packet[1] = 0x05;
-    packet[2] = (totalLength - 4) & 0xFF; // Length LSB
-    packet[3] = ((totalLength - 4) >> 8) & 0xFF; // Length MSB
-    packet[4] = address_lsb;
-    packet[5] = address_msb;
-    packet[6] = size;
-    packet[7] = 0x00; // padding
-    
-    // Copy data into packet
-    packet.set(data, 8);
-    
-    // Add timestamp at the end
-    packet[totalLength - 4] = 0xff;
-    packet[totalLength - 3] = 0xff;
-    packet[totalLength - 2] = 0xff;
-    packet[totalLength - 1] = 0xff;
-    
-    await sendPacket(port, packet);
-    
-    // Wait for acknowledgment
-    const response = await readPacket(port, 0x1e);
-    return response;
-}
-
-// Add write configuration functionality
 writeConfigButton.addEventListener('click', async function() {
     writeConfigButton.classList.add('disabled');
     
@@ -263,4 +186,97 @@ writeConfigButton.addEventListener('click', async function() {
         }
         writeConfigButton.classList.remove('disabled');
     }
+});
+
+// Load a predefined configuration
+async function loadPresetConfig() {
+    const selectedConfig = configFileSelect.value;
+    
+    if (!selectedConfig) {
+        log('Please select a configuration to load.');
+        return;
+    }
+    
+    try {
+        log(`Loading preset configuration: ${selectedConfig}...`);
+        const response = await fetch(selectedConfig);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch configuration (HTTP ${response.status})`);
+        }
+        
+        const configBuffer = await response.arrayBuffer();
+        rawEEPROM = new Uint8Array(configBuffer);
+        
+        if (rawEEPROM.length !== 0x2000) {
+            log(`Warning: Configuration size is ${rawEEPROM.length} bytes, expected 8192 bytes.`);
+        }
+        
+        log('Configuration loaded successfully.');
+        writeConfigButton.classList.remove('disabled');
+        
+    } catch (error) {
+        console.error('Error loading configuration:', error);
+        log(`Error loading configuration: ${error.message}`);
+    }
+}
+
+// Function to download the selected config
+function downloadConfig() {
+    const selectedConfig = configFileSelect.value;
+    
+    if (!selectedConfig) {
+        log('Please select a configuration to download.');
+        return;
+    }
+    
+    log(`Downloading configuration: ${selectedConfig}...`);
+    
+    const link = document.createElement('a');
+    link.href = selectedConfig;
+    link.download = selectedConfig.split('/').pop();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Handle file selection for custom configuration import
+document.getElementById('backupFileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    document.getElementById('backupFileLabel').textContent = file.name;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        rawEEPROM = new Uint8Array(e.target.result);
+        if (rawEEPROM.length !== 0x2000) {
+            log(`Warning: Imported file size is ${rawEEPROM.length} bytes, expected 8192 bytes.`);
+        }
+        log(`Configuration imported from ${file.name}.`);
+        writeConfigButton.classList.remove('disabled');
+    };
+    reader.onerror = function() {
+        log('Error reading file.');
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+// Initialize configurator
+window.addEventListener('DOMContentLoaded', () => {
+    configFileSelect = document.getElementById('configFileSelect');
+    
+    if (configFileSelect) {
+        configFileSelect.addEventListener('change', function() {
+            if (this.value) {
+                document.getElementById('downloadConfigButton').classList.remove('disabled');
+                document.getElementById('loadConfigButton').classList.remove('disabled');
+            } else {
+                document.getElementById('downloadConfigButton').classList.add('disabled');
+                document.getElementById('loadConfigButton').classList.add('disabled');
+            }
+        });
+    }
+    
+    log("Please read config from device or load a backup file.");
 });
