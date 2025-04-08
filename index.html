@@ -13,7 +13,7 @@
   <meta property="og:type" content=website>
   <meta property="og:image" content=https://whosmatt.github.io/uvmod/img/banner.webp>
 
-  <title>UVMOD</title>
+  <title>IU2FRL Quansheng modding tool</title>
 
   <link rel="icon" type="image/x-icon" href="img/favicon.ico">
   <!-- Custom fonts for this template-->
@@ -143,51 +143,69 @@
                 </a>
                 <div id="instructions" class="card-body collapse">
                   <h2 class="mb-4">IU2FRL Flasher (derived from UVMOD)</h2>
-                  <p>This tool provides a simple web interface for flashing firmwares to Quansheng UV-K5, UV-K6,
-                    UV-K5(8), and UV-5R
-                    Plus handheld radios. It works by connecting to your radio through a compatible programming cable
-                    using Web Serial API.</p>
+                  <p>This tool provides a comprehensive web interface for flashing firmwares and configuring Quansheng UV-K5, UV-K6,
+                  UV-K5(8), and UV-5R Plus handheld radios. It works by connecting to your radio through a compatible programming cable
+                  using Web Serial API.</p>
 
-                  <h3 class="mt-4">How the Tool Works</h3>
+                  <h3 class="mt-4">Firmware Flasher Features</h3>
+                  <ul>
+                  <li><strong>Multiple Firmware Options:</strong> Choose from pre-configured firmware versions or upload your own custom firmware</li>
+                  <li><strong>Firmware Download:</strong> Download firmware files to your PC for manual flashing or backup</li>
+                  <li><strong>Automatic Version Detection:</strong> The tool automatically detects firmware versions and handles compatibility checks</li>
+                  <li><strong>Bootloader Communication:</strong> Direct communication with the radio's bootloader for reliable flashing</li>
+                  <li><strong>Progress Monitoring:</strong> Real-time progress updates during the flashing process</li>
+                  <li><strong>Size Verification:</strong> Automatic verification of firmware size to ensure compatibility</li>
+                  </ul>
+
+                  <h3 class="mt-4">Radio Configurator Features</h3>
+                  <ul>
+                  <li><strong>Read Configuration:</strong> Read and display your radio's current configuration without modifying the firmware</li>
+                  <li><strong>Write Configuration:</strong> Save modified settings back to your radio's EEPROM</li>
+                  <li><strong>Automatic Backups:</strong> Option to automatically create backup files when reading configurations</li>
+                  <li><strong>Configuration Presets:</strong> Load pre-configured settings specifically designed for different firmware versions</li>
+                  <li><strong>Import/Export:</strong> Import configuration from backup files or export your current settings</li>
+                  <li><strong>Radio Reboot:</strong> Automatically reboots the radio after writing configuration changes</li>
+                  </ul>
+
+                  <h3 class="mt-4">How to Use the Firmware Flasher</h3>
                   <ol>
-                    <li>Select your desired firmware from the dropdown menu on the left panel.</li>
-                    <li>Connect your radio in bootloader mode (by holding PTT while powering on).</li>
-                    <li>Click "Flash firmware to the radio" to initiate the flashing process.</li>
-                    <li>The tool communicates with your radio via Serial API, uploads the firmware binary, and provides
-                      real-time progress in the console window.</li>
+                  <li>Select a firmware from the dropdown menu or upload your own custom firmware file</li>
+                  <li>Put your radio in bootloader mode by holding PTT while powering on (display will be blank)</li>
+                  <li>Connect your radio to your computer using a programming cable</li>
+                  <li>Click "Flash firmware to the radio" to begin the flashing process</li>
+                  <li>Monitor the console window for progress updates and confirmation</li>
+                  <li>Wait for the process to complete before disconnecting your radio</li>
                   </ol>
 
-                  <h3 class="mt-4">Radio Configurator</h3>
-                  <p>The right panel provides a configuration interface that allows you to:</p>
+                  <h3 class="mt-4">How to Use the Radio Configurator</h3>
                   <ol>
-                    <li>Read your radio's current configuration settings.</li>
-                    <li>Modify settings without reflashing the entire firmware.</li>
-                    <li>Write changes back to the radio.</li>
-                    <li>Create and restore configuration backups.</li>
+                  <li>Turn on your radio in normal operating mode (not bootloader mode)</li>
+                  <li>Connect your radio to your computer using a programming cable</li>
+                  <li>Click "Read Config" to retrieve your radio's current configuration</li>
+                  <li>To restore a previous configuration, either select a preset or import a backup file</li>
+                  <li>Click "Write Config" to apply changes to your radio</li>
+                  <li>Wait for the configuration process to complete and the radio to reboot</li>
                   </ol>
 
                   <h3 class="mt-4">Technical Details</h3>
-                  <p>The firmware flashing process utilizes the Web Serial API available in modern browsers to establish
-                    direct communication with your radio's bootloader. The tool performs the following operations:</p>
-                  <ol>
-                    <li>Loads the selected firmware binary from the server.</li>
-                    <li>Establishes a serial connection to the radio's bootloader.</li>
-                    <li>Sends the appropriate commands to erase and write to the radio's flash memory.</li>
-                    <li>Verifies successful writing to ensure firmware integrity.</li>
-                  </ol>
-
-                  <h3 class="mt-4">Requirements</h3>
-                  <p>To use this tool effectively:</p>
+                  <p>The tool utilizes Web Serial API to communicate with your radio and performs the following operations:</p>
                   <ul>
-                    <li>Use a Chromium-based browser (Chrome, Edge, Opera) which supports Web Serial API.</li>
-                    <li>Have appropriate drivers installed for your programming cable (typically ch340, ch341 or cp210x
-                      chips).</li>
-                    <li>Connect your radio in bootloader mode before attempting to flash.</li>
-                    <li>Ensure you have a stable connection throughout the flashing process.</li>
+                  <li><strong>Firmware Unpacking:</strong> Automatically unpacks binary firmware files for processing</li>
+                  <li><strong>EEPROM Access:</strong> Direct reading and writing to the radio's EEPROM for configuration management</li>
+                  <li><strong>Packet Communication:</strong> Uses specialized protocols to communicate with both the radio's bootloader and normal operating mode</li>
+                  <li><strong>Flash Memory Operations:</strong> Performs safe erase and write operations to the radio's flash memory</li>
                   </ul>
 
-                  <p class="mt-4 font-weight-bold">Note: If you prefer to download the firmware without flashing, you
-                    can use the "Download firmware to PC" button and flash manually using official tools.</p>
+                  <h3 class="mt-4">Requirements</h3>
+                  <ul>
+                  <li>Chromium-based browser (Chrome, Edge, Opera) with Web Serial API support</li>
+                  <li>Appropriate drivers for your programming cable (typically CH340, CH341 or CP210X chips)</li>
+                  <li>Stable connection during flashing and configuration processes</li>
+                  <li>For firmware flashing: Radio must be in bootloader mode (hold PTT while powering on)</li>
+                  <li>For configuration: Radio must be in normal operating mode</li>
+                  </ul>
+
+                  <p class="mt-4 font-weight-bold">Note: This tool is designed for radio enthusiasts and should be used with caution. Always back up your configurations before making changes, and ensure your radio remains connected during the entire flashing or configuration process.</p>
                 </div>
               </div>
 
